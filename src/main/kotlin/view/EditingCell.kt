@@ -76,16 +76,16 @@ class EditingCell : TableCell<Title, String?>() {
     }
 
     override fun commitEdit(newValue: String?) {
-        if (!isEditing && !newValue.equals(item)) {
+        if (!newValue.equals(item)) {
             val table: TableView<Title> = tableView
             val column: TableColumn<Title, String?> = tableColumn
             val event: TableColumn.CellEditEvent<Title, String?> = TableColumn.CellEditEvent(
                 table, TablePosition<Title, String?>(table, index, column),
-                TableColumn.editCommitEvent(), item
+                TableColumn.editCommitEvent(), newValue
             )
             Event.fireEvent(column, event)
-            updateItem(newValue,false)
         }
+        updateItem(newValue,false)
         super.commitEdit(item)
     }
 

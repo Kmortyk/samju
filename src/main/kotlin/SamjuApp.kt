@@ -68,11 +68,20 @@ class PostgresDbView : View() {
             columnResizePolicy = TableView.UNCONSTRAINED_RESIZE_POLICY
             prefWidth = 600.0
 
-            val cols = listOf("id", "artist", "name", "format")
+            val cols = listOf("id", "artist", "name", "rating", "format")
             for(name in cols) {
                 val col = TableColumn<Title, String>(name)
                 col.cellValueFactory = PropertyValueFactory(name)
                 col.cellFactory = cellFactory
+                col.setOnEditCommit {
+                    val title = it.tableView.items[it.tablePosition.row] as Title
+                    when(name) {
+                        "artist" -> title.artist = it.newValue
+                        "rating" -> title.rating = it.newValue
+                        "name" -> title.name = it.newValue
+                    }
+                    storage.updateTitle(title)
+                }
                 columns.add(col)
             }
         }
