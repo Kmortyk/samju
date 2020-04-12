@@ -43,12 +43,12 @@ class PostgresStorage : Storage {
 
         while (rs.next()) {
             titles.add(Title(
-                rs.getInt("id"),
+                rs.getString("id"),
                 rs.getString("artist"),
                 rs.getString("name"),
                 rs.getString("t"),
-                rs.getInt("rating"),
-                rs.getInt("song_id"),
+                rs.getString("rating"),
+                rs.getString("song_id"),
                 rs.getString("song_format")
             ))
         }

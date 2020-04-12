@@ -1,21 +1,22 @@
 import controller.AppViewController
 import javafx.event.ActionEvent
 import javafx.event.EventHandler
-import javafx.scene.control.Menu
-import javafx.scene.control.MenuItem
-import javafx.scene.control.Slider
-import javafx.scene.control.TableView
-import javafx.scene.control.TableView.UNCONSTRAINED_RESIZE_POLICY
+import javafx.scene.control.*
+import javafx.scene.control.cell.PropertyValueFactory
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.input.MouseEvent
-import javafx.scene.layout.*
+import javafx.scene.layout.AnchorPane
+import javafx.scene.layout.Pane
 import javafx.scene.shape.Circle
 import javafx.scene.shape.Polyline
 import javafx.stage.Stage
+import javafx.util.Callback
 import model.Title
 import storage.PostgresStorage
 import tornadofx.*
+import view.EditingCell
+
 
 /**
  * TODO
@@ -57,15 +58,23 @@ class PostgresDbView : View() {
 
     override val root = hbox {
         val titles = storage.titles().observable()
+        val cellFactory = Callback<TableColumn<Title, String?>, TableCell<Title, String?>> {
+            EditingCell()
+        }
 
         // table
         tableview(titles) {
             columnResizePolicy = TableView.UNCONSTRAINED_RESIZE_POLICY
             prefWidth = 600.0
-            readonlyColumn("id", Title::id)
-            readonlyColumn("artist", Title::artist)
-            readonlyColumn("name", Title::name)
-            readonlyColumn("format", Title::songFormat)
+
+            val cells = listOf("id", "artist", "name", "format")
+            for(name in cells) {
+                val cell = TableColumn<Title, String>(name)
+                cell.cellValueFactory = PropertyValueFactory(name)
+                cell.cellFactory = cellFactory
+                cell.isEditable = true
+                addColumnInternal(cell)
+            }
         }
 
         changePlayState(false)
