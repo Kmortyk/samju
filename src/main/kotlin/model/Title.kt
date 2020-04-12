@@ -7,4 +7,5 @@ data class Title(
     /* additional stuff */
     val t: Long = System.currentTimeMillis(),
     val rating: Int = 5,
-    val songId: Int? = null)
+    val songId: Int? = null,
+    val songFormat: String? = null)
