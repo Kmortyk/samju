@@ -64,16 +64,16 @@ class PostgresDbView : View() {
 
         // table
         tableview(titles) {
+            isEditable = true
             columnResizePolicy = TableView.UNCONSTRAINED_RESIZE_POLICY
             prefWidth = 600.0
 
-            val cells = listOf("id", "artist", "name", "format")
-            for(name in cells) {
-                val cell = TableColumn<Title, String>(name)
-                cell.cellValueFactory = PropertyValueFactory(name)
-                cell.cellFactory = cellFactory
-                cell.isEditable = true
-                addColumnInternal(cell)
+            val cols = listOf("id", "artist", "name", "format")
+            for(name in cols) {
+                val col = TableColumn<Title, String>(name)
+                col.cellValueFactory = PropertyValueFactory(name)
+                col.cellFactory = cellFactory
+                columns.add(col)
             }
         }
 

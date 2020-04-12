@@ -8,4 +8,4 @@ data class Title(
     val date: String = "",
     val rating: String = "5",
     val songId: String? = null,
-    val songFormat: String? = null)
+    val format: String? = null)

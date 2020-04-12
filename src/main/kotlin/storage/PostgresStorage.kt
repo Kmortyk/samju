@@ -35,11 +35,11 @@ class PostgresStorage : Storage {
 
     /* --- Implementation ------------------------------------------------------------------------------------------- */
 
-    override fun titles(sortType: SortType) : List<Title> {
+    override fun titles(sortType: SortType) : ArrayList<Title> {
         val query = "SELECT * from $TABLE_TITLES"
         val statement = db.createStatement()
         val rs: ResultSet = statement.executeQuery(query)
-        val titles = mutableListOf<Title>()
+        val titles = ArrayList<Title>()
 
         while (rs.next()) {
             titles.add(Title(
