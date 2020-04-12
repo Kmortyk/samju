@@ -96,12 +96,10 @@ class PostgresStorage : Storage {
         return Title.EMPTY
     }
 
-    override fun addTitle(title: Title) {
-        TODO("Not yet implemented")
-    }
-
     override fun removeTitle(title: Title) {
-        TODO("Not yet implemented")
+        val stmt = db.createStatement()
+        val query = "DELETE FROM titles WHERE id=${title.id};"
+        stmt.executeUpdate(query)
     }
 
     override fun loadFile(path: String) {

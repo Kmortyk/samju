@@ -21,12 +21,13 @@ import view.EditingCell
 /**
  * TODO
  * 1. Id без дырок
- * 3. Удаление тайтла из базы данных
  * 4. Имзенение данных в тайтле с изменением в базе данных
  * 5. Выбор файла музки и загрузка в память
  * 6. Загрузка формата в базу данных
  * 7. Загрузка музыкального файла в базу данных
  * 8. Проигрывание музыкального файла из базы данных
+ * 9. Экспорт дампа названий
+ * 10. Экспорт дампа музыки
  * */
 
 class PostgresDbView : View() {
@@ -62,7 +63,7 @@ class PostgresDbView : View() {
         }
 
         // table
-        tableview(titles) {
+        val tableView = tableview(titles) {
             isEditable = true
             columnResizePolicy = TableView.UNCONSTRAINED_RESIZE_POLICY
             prefWidth = 600.0
@@ -84,6 +85,7 @@ class PostgresDbView : View() {
                 columns.add(col)
             }
         }
+        add(tableView)
 
         changePlayState(false)
         val handler = EventHandler<MouseEvent> {
@@ -106,7 +108,11 @@ class PostgresDbView : View() {
                     titles.add(title)
                 })
                 actionable(menu(null, imr), EventHandler {
-
+                    val row = tableView.selectionModel.selectedItem
+                    if (row != null) {
+                        titles.remove(row)
+                        storage.removeTitle(row)
+                    }
                 })
                 actionable(menu(null, imf), EventHandler {
 
