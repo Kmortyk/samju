@@ -20,8 +20,7 @@ import view.EditingCell
 
 /**
  * TODO
- * 1. Подсоединить базу данных postgres
- * 2. Добавление нового тайтла в базу данных
+ * 1. Id без дырок
  * 3. Удаление тайтла из базы данных
  * 4. Имзенение данных в тайтле с изменением в базе данных
  * 5. Выбор файла музки и загрузка в память
@@ -103,7 +102,8 @@ class PostgresDbView : View() {
 
             menubar {
                 actionable(menu(null, ima), EventHandler {
-
+                    val title = storage.insertNewTitle()
+                    titles.add(title)
                 })
                 actionable(menu(null, imr), EventHandler {
 

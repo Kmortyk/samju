@@ -1,13 +1,7 @@
 package storage
 
 import model.Title
-import java.sql.Connection
-import java.sql.DriverManager
-import java.sql.PreparedStatement
-import java.sql.ResultSet
-
-
-
+import java.sql.*
 
 
 class PostgresStorage : Storage {
@@ -70,11 +64,36 @@ class PostgresStorage : Storage {
 
         stmt.setString(1, title.artist)
         stmt.setString(2, title.name)
-        stmt.setInt(3, title.rating.toInt())
+        stmt.setInt(3, title.rating?.toInt() ?: 4)
         stmt.setInt(4, title.id.toInt())
 
         println(stmt.toString())
         stmt.executeUpdate()
+    }
+
+    override fun insertNewTitle() : Title { // insert new empty row
+        val stmt = db.createStatement()
+        val query = "INSERT INTO titles(artist,rating) VALUES('',4);"
+        stmt.executeUpdate(query, Statement.RETURN_GENERATED_KEYS)
+        if(stmt.generatedKeys.next()) {
+            val num = stmt.generatedKeys.getLong(1)
+            val query2 = "SELECT * from $TABLE_TITLES WHERE id=$num;"
+            val statement = db.createStatement()
+            val rs: ResultSet = statement.executeQuery(query2)
+
+            if (rs.next()) {
+                return Title(
+                    id=rs.getString("id"),
+                    artist=rs.getString("artist"),
+                    name=rs.getString("name"),
+                    date=rs.getString("t"),
+                    rating=rs.getString("rating"),
+                    songId=rs.getString("song_id"),
+                    format=rs.getString("song_format")
+                )
+            }
+        }
+        return Title.EMPTY
     }
 
     override fun addTitle(title: Title) {

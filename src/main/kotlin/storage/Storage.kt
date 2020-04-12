@@ -12,6 +12,7 @@ interface Storage {
     fun updateTitle(title: Title)
     fun removeTitle(title: Title)
     fun titles(sortType: SortType = SortType.BY_ID) : List<Title>
+    fun insertNewTitle() : Title
 
     /* Music file */
     fun loadFile(path: String)
