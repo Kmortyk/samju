@@ -4,6 +4,8 @@ import javafx.event.EventHandler
 import javafx.scene.control.Menu
 import javafx.scene.control.MenuItem
 import javafx.scene.control.Slider
+import javafx.scene.control.TableView
+import javafx.scene.control.TableView.UNCONSTRAINED_RESIZE_POLICY
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.input.MouseEvent
@@ -54,20 +56,16 @@ class PostgresDbView : View() {
     private val stopView: Pane by fxid("stop")
 
     override val root = hbox {
-        val titles = listOf(
-            Title(1, "Samantha Stuart", "My love"),
-            Title(2, "Tom Marks", "Hello, friend"),
-            Title(3, "Stuart Gills", "Last dance"),
-            Title(4, "Nicole Williams", "First day")
-        ).observable()
+        val titles = storage.titles().observable()
 
         // table
         tableview(titles) {
-            prefWidth = 325.0
+            columnResizePolicy = TableView.UNCONSTRAINED_RESIZE_POLICY
+            prefWidth = 600.0
             readonlyColumn("id", Title::id)
             readonlyColumn("artist", Title::artist)
             readonlyColumn("name", Title::name)
-            readonlyColumn("format", Title::songId)
+            readonlyColumn("format", Title::songFormat)
         }
 
         changePlayState(false)
@@ -81,9 +79,9 @@ class PostgresDbView : View() {
 
         vbox {
 
-            val ima = ImageView(Image("img/add2.png", ICON_SIZE, ICON_SIZE, false, ICON_SMOOTH))
-            val imr = ImageView(Image("img/remove2.png", ICON_SIZE, ICON_SIZE, false, ICON_SMOOTH))
-            val imf = ImageView(Image("img/file2.png", ICON_SIZE, ICON_SIZE, false, ICON_SMOOTH))
+            val ima = ImageView(Image("img/add.png", ICON_SIZE, ICON_SIZE, false, ICON_SMOOTH))
+            val imr = ImageView(Image("img/remove.png", ICON_SIZE, ICON_SIZE, false, ICON_SMOOTH))
+            val imf = ImageView(Image("img/file.png", ICON_SIZE, ICON_SIZE, false, ICON_SMOOTH))
 
             menubar {
                 actionable(menu(null, ima), EventHandler {
