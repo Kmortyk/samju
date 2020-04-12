@@ -1,5 +1,10 @@
 import controller.AppViewController
+import javafx.event.EventHandler
+import javafx.scene.control.Slider
+import javafx.scene.input.MouseEvent
 import javafx.scene.layout.*
+import javafx.scene.shape.Circle
+import javafx.scene.shape.Polyline
 import javafx.stage.Stage
 import model.Title
 import storage.PostgresStorage
@@ -18,10 +23,16 @@ class PostgresDbView : View() {
 
     /* --- View ----------------------------------------------------------------------------------------------------- */
 
-    private val pane: AnchorPane by fxml("layout/player.fxml")
+    // main
+    private val player: AnchorPane by fxml("layout/player.fxml")
+    // actions
+    private val playButton: Circle by fxid("play_button")
+    private val playSlider: Slider by fxid("slider")
+    // stickers
+    private val playView: Polyline by fxid("play")
+    private val stopView: Pane by fxid("stop")
 
     override val root = hbox {
-
         val titles = listOf(
             Title(1,"Samantha Stuart", "My love"),
             Title(2,"Tom Marks", "Hello, friend"),
@@ -37,18 +48,27 @@ class PostgresDbView : View() {
             readonlyColumn("DataId", Title::songId)
         }
 
-        add(pane)
+        changePlayState(false)
+        val handler = EventHandler<MouseEvent> {
+            changePlayState(!isPlayState())
+        }
+
+        playButton.onMouseClicked = handler
+        playView.onMouseClicked = handler
+        stopView.onMouseClicked = handler
+
+        add(player)
     }
 
     /* --- Common --------------------------------------------------------------------------------------------------- */
 
-    private fun triangle(offX: Double, offY: Double) : Array<Double> {
-        return arrayOf(
-            40.0+offX, 0.0+offY,
-            80.0+offX, 30.0+offY,
-            40.0+offX, 60.0+offY,
-            40.0+offX, 0.0+offY
-        )
+    private fun isPlayState() : Boolean {
+        return playView.isVisible
+    }
+
+    private fun changePlayState(isPlayState: Boolean) {
+        playView.isVisible = isPlayState
+        stopView.isVisible = !isPlayState
     }
 }
 
