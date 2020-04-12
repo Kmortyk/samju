@@ -1,30 +1,24 @@
 import controller.AppViewController
-import javafx.event.ActionEvent
-import javafx.event.EventHandler
-import javafx.fxml.FXMLLoader
-import javafx.geometry.Pos
-import javafx.scene.Node
-import javafx.scene.control.Menu
-import javafx.scene.control.MenuItem
 import javafx.scene.layout.*
-import javafx.scene.paint.Color
-import javafx.scene.shape.ArcType
-import javafx.scene.shape.Ellipse
 import javafx.stage.Stage
 import model.Title
 import storage.PostgresStorage
 import tornadofx.*
-import java.io.File
-import java.net.URL
 
 
 class PostgresDbView : View() {
+
+    /* --- Model ---------------------------------------------------------------------------------------------------- */
 
     // storage instance
     private val storage = PostgresStorage()
 
     // controller for actions
     private val controller = AppViewController(storage)
+
+    /* --- View ----------------------------------------------------------------------------------------------------- */
+
+    private val pane: AnchorPane by fxml("layout/player.fxml")
 
     override val root = hbox {
 
@@ -43,10 +37,7 @@ class PostgresDbView : View() {
             readonlyColumn("DataId", Title::songId)
         }
 
-        // player
-        fxml<Node>("player.fxml")
-        //val node = FXMLLoader.load<AnchorPane>(URL("file:"))
-        //add(node)
+        add(pane)
     }
 
     /* --- Common --------------------------------------------------------------------------------------------------- */
