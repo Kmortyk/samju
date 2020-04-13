@@ -10,6 +10,7 @@ import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.Pane
 import javafx.scene.shape.Circle
 import javafx.scene.shape.Polyline
+import javafx.stage.FileChooser
 import javafx.stage.Stage
 import javafx.util.Callback
 import model.Title
@@ -20,14 +21,8 @@ import view.EditingCell
 
 /**
  * TODO
- * 1. Id без дырок
- * 4. Имзенение данных в тайтле с изменением в базе данных
- * 5. Выбор файла музки и загрузка в память
- * 6. Загрузка формата в базу данных
- * 7. Загрузка музыкального файла в базу данных
- * 8. Проигрывание музыкального файла из базы данных
- * 9. Экспорт дампа названий
- * 10. Экспорт дампа музыки
+ * 1. проигрывание музыкального файла из базы данных
+ * 2. экспорт дампа названий
  * */
 
 class PostgresDbView : View() {
@@ -35,6 +30,8 @@ class PostgresDbView : View() {
     companion object {
         const val ICON_SIZE = 16.0
         const val ICON_SMOOTH = true
+
+        val FORMATS = arrayListOf("mp3", "wav", "wma", "flac", "aiff", "ogg")
     }
 
     /* --- Model ---------------------------------------------------------------------------------------------------- */
@@ -56,6 +53,8 @@ class PostgresDbView : View() {
     private val playView: Polyline by fxid("play")
     private val stopView: Pane by fxid("stop")
 
+    private lateinit var tableView: TableView<Title>
+
     override val root = hbox {
         val titles = storage.titles().observable()
         val cellFactory = Callback<TableColumn<Title, String?>, TableCell<Title, String?>> {
@@ -63,7 +62,7 @@ class PostgresDbView : View() {
         }
 
         // table
-        val tableView = tableview(titles) {
+        tableView = tableview(titles) {
             isEditable = true
             columnResizePolicy = TableView.UNCONSTRAINED_RESIZE_POLICY
             prefWidth = 600.0
@@ -79,6 +78,7 @@ class PostgresDbView : View() {
                         "artist" -> title.artist = it.newValue
                         "rating" -> title.rating = it.newValue
                         "name" -> title.name = it.newValue
+                        "format" -> title.format = it.newValue
                     }
                     storage.updateTitle(title)
                 }
@@ -87,9 +87,24 @@ class PostgresDbView : View() {
         }
         add(tableView)
 
+        tableView.selectionModel.selectedItemProperty().addListener { _, _, _ ->
+            val row = cur()
+            if (row != null)
+                changePlayState(row.songId != null)
+        }
+
+
         changePlayState(false)
         val handler = EventHandler<MouseEvent> {
-            changePlayState(!isPlayState())
+            val row = cur()
+            // if selected row not null
+            if (row != null) {
+                // if can - change state
+                if(row.songId != null)
+                    changePlayState(!isPlayState())
+                // otherwise - always false
+                else changePlayState(false)
+            }
         }
 
         playButton.onMouseClicked = handler
@@ -101,6 +116,7 @@ class PostgresDbView : View() {
             val ima = ImageView(Image("img/add.png", ICON_SIZE, ICON_SIZE, false, ICON_SMOOTH))
             val imr = ImageView(Image("img/remove.png", ICON_SIZE, ICON_SIZE, false, ICON_SMOOTH))
             val imf = ImageView(Image("img/file.png", ICON_SIZE, ICON_SIZE, false, ICON_SMOOTH))
+            val ime = ImageView(Image("img/export.png", ICON_SIZE, ICON_SIZE, false, ICON_SMOOTH))
 
             menubar {
                 actionable(menu(null, ima), EventHandler {
@@ -108,14 +124,27 @@ class PostgresDbView : View() {
                     titles.add(title)
                 })
                 actionable(menu(null, imr), EventHandler {
-                    val row = tableView.selectionModel.selectedItem
+                    val row = cur()
                     if (row != null) {
                         titles.remove(row)
                         storage.removeTitle(row)
                     }
                 })
                 actionable(menu(null, imf), EventHandler {
-
+                    val row = tableView.selectionModel.selectedItem
+                    if (row != null) { // if row selected
+                        val filters = mutableListOf<FileChooser.ExtensionFilter>()
+                        for (f in FORMATS)
+                            filters.add(FileChooser.ExtensionFilter(f, "*.$f"))
+                        filters.add(FileChooser.ExtensionFilter("all formats", "*.*"))
+                        // choose file path
+                        val file = chooseFile("Load music file", filters.toTypedArray())[0]
+                        storage.insertFile(row, file)
+                        tableView.refresh()
+                    }
+                })
+                actionable(menu(null, ime), EventHandler {
+                    /* export */
                 })
             }
             add(player)
@@ -123,6 +152,8 @@ class PostgresDbView : View() {
     }
 
     /* --- Common --------------------------------------------------------------------------------------------------- */
+
+    private fun cur() = tableView.selectionModel.selectedItem
 
     private fun isPlayState() : Boolean {
         return playView.isVisible

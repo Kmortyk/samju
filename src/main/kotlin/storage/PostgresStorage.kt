@@ -1,7 +1,10 @@
 package storage
 
 import model.Title
+import java.io.File
+import java.nio.charset.Charset
 import java.sql.*
+import java.util.*
 
 
 class PostgresStorage : Storage {
@@ -15,6 +18,7 @@ class PostgresStorage : Storage {
         private const val PASSWORD = "rNN8gEfMfQ"
 
         private const val TABLE_TITLES = "titles"
+        private const val TABLE_DATA = "song_data"
 
         const val URL = "jdbc:postgresql://$HOST:$PORT/$DB_NAME"
     }
@@ -59,13 +63,15 @@ class PostgresStorage : Storage {
     }
 
     override fun updateTitle(title: Title) {
-        val query = "UPDATE titles SET artist=?, name=?, rating=? WHERE id=?;"
+        val query = "UPDATE titles SET artist=?, name=?, rating=?, song_id=?, song_format=? WHERE id=?;"
         val stmt = db.prepareStatement(query)
 
         stmt.setString(1, title.artist)
         stmt.setString(2, title.name)
         stmt.setInt(3, title.rating?.toInt() ?: 4)
-        stmt.setInt(4, title.id.toInt())
+        stmt.setInt(4, title.songId?.toInt() ?: 0)
+        stmt.setString(5, title.format ?: "")
+        stmt.setInt(6, title.id.toInt())
 
         println(stmt.toString())
         stmt.executeUpdate()
@@ -102,9 +108,29 @@ class PostgresStorage : Storage {
         stmt.executeUpdate(query)
     }
 
-    override fun loadFile(path: String) {
-        TODO("Not yet implemented")
+    override fun insertFile(title: Title, file: File) {
+        val stmt = db.createStatement()
+        val bts = file.readBytes()
+        val query = "INSERT INTO song_data(data) VALUES ('${Base64.getEncoder().encodeToString(bts)}');";
+        stmt.executeUpdate(query, Statement.RETURN_GENERATED_KEYS)
+
+        if(stmt.generatedKeys.next()) {
+            val num = stmt.generatedKeys.getLong(1)
+            title.songId = "$num"
+            title.format = file.extension
+            updateTitle(title)
+        }
     }
 
+    override fun getFile(title: Title): ByteArray {
+        val stmt = db.createStatement()
+        val query = "SELECT data from $TABLE_DATA WHERE id=${title.songId};"
+        val rs: ResultSet = stmt.executeQuery(query)
 
+        if(rs.next()) {
+            val str = rs.getString("data")
+            return Base64.getDecoder().decode(str)
+        }
+        return ByteArray(0)
+    }
 }

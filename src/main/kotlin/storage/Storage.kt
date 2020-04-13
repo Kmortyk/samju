@@ -1,6 +1,7 @@
 package storage
 
 import model.Title
+import java.io.File
 
 enum class SortType {
     BY_ID, BY_NAME, BY_ARTIST, BY_DATE
@@ -14,6 +15,6 @@ interface Storage {
     fun titles(sortType: SortType = SortType.BY_ID) : List<Title>
 
     /* Music file */
-    fun loadFile(path: String)
-    // fun removeFile(id: Int)
+    fun insertFile(title: Title, file: File)
+    fun getFile(title: Title) : ByteArray
 }

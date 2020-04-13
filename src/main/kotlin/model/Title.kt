@@ -8,8 +8,8 @@ data class Title(
     var rating: String? = "5",
     /* song data */
     val date: String = "",
-    val songId: String? = null,
-    val format: String? = null) {
+    var songId: String? = null,
+    var format: String? = null) {
 
     companion object {
         val EMPTY = Title("", "", "")
