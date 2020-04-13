@@ -17,4 +17,7 @@ interface Storage {
     /* Music file */
     fun insertFile(title: Title, file: File)
     fun getFile(title: Title) : ByteArray
+
+    /* Dump */
+    fun makeDump(file: File)
 }

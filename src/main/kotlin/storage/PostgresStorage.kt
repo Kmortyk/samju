@@ -1,12 +1,14 @@
 package storage
 
 import model.Title
+import org.postgresql.copy.CopyManager
+import org.postgresql.core.BaseConnection
 import java.io.File
+import java.io.FileOutputStream
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.ResultSet
 import java.sql.Statement
-import java.util.*
 
 
 class PostgresStorage : Storage {
@@ -139,5 +141,13 @@ class PostgresStorage : Storage {
 
         println("[ERROR] empty song data!")
         return ByteArray(0)
+    }
+
+    override fun makeDump(file: File) {
+        val copyManager = CopyManager(db as BaseConnection)
+        val fileOutputStream = FileOutputStream(file)
+
+        copyManager.copyOut("COPY ( SELECT * FROM titles ) " +
+                                "TO STDOUT WITH (FORMAT CSV)", fileOutputStream)
     }
 }

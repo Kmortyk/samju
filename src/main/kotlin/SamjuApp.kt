@@ -23,15 +23,7 @@ import model.Title
 import storage.PostgresStorage
 import tornadofx.*
 import view.EditingCell
-import java.lang.Math.abs
 import java.nio.file.Paths
-
-
-/**
- * TODO
- * 1. двигающийся слайдер
- * 2. экспорт дампа названий
- * */
 
 class PostgresDbView : View() {
 
@@ -184,7 +176,8 @@ class PostgresDbView : View() {
                     }
                 })
                 actionable(menu(null, ime), EventHandler {
-                    /* export */
+                    val file = chooseFile("Create dump", arrayOf(), FileChooserMode.Save)[0]
+                    storage.makeDump(file)
                 })
             }
             add(player)
