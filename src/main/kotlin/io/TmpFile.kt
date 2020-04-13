@@ -13,6 +13,9 @@ class TmpFile {
 
             val stream = FileOutputStream(tempFile)
             stream.write(bts)
+
+            println(tempFile.absolutePath)
+
             return tempFile
         }
     }

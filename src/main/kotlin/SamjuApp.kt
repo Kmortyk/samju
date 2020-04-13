@@ -15,7 +15,6 @@ import javafx.scene.shape.Polyline
 import javafx.stage.FileChooser
 import javafx.stage.Stage
 import javafx.util.Callback
-import io.SimplePlayer
 import io.TmpFile
 import model.Title
 import storage.PostgresStorage
@@ -26,7 +25,6 @@ import java.nio.file.Paths
 
 /**
  * TODO
- * 1. проигрывание музыкального файла из базы данных
  * 2. экспорт дампа названий
  * */
 
@@ -60,6 +58,9 @@ class PostgresDbView : View() {
 
     private lateinit var tableView: TableView<Title>
     private var songData: ByteArray? = null
+
+    var songId: String = "0"
+    var mediaPlayer: MediaPlayer? = null
 
     override val root = hbox {
         val titles = storage.titles().observable()
@@ -110,14 +111,20 @@ class PostgresDbView : View() {
                     val playState = !isPlayState()
                     changePlayState(!isPlayState())
                     if(!playState) {
-                        if(songData == null) // load data if null
+                        if(songData == null || songId != row.songId) { // new songId or null
                             songData = storage.getFile(row)
+                            songId = row.songId ?: "0"
 
-                        val musicFile = TmpFile.put("samju", row.format ?: "", songData ?: ByteArray(0))
-                        // fixme javafx media interface is so awesome!!!
-                        val hit = Media(Paths.get(musicFile.absolutePath).toUri().toString())
-                        val mediaPlayer = MediaPlayer(hit)
-                        mediaPlayer.play()
+                            val musicFile = TmpFile.put("samju", row.format ?: "", songData ?: ByteArray(0))
+                            // fixme javafx media interface is so awesome!!!
+                            val hit = Media(Paths.get(musicFile.absolutePath).toUri().toString())
+                            mediaPlayer = MediaPlayer(hit)
+                            mediaPlayer?.play()
+                        } else {
+                            mediaPlayer?.play()
+                        }
+                    } else {
+                        mediaPlayer?.pause()
                     }
                 }
                 // otherwise - always false
