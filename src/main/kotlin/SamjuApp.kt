@@ -1,4 +1,7 @@
 import controller.AppViewController
+import io.TmpFile
+import javafx.application.Platform
+import javafx.beans.InvalidationListener
 import javafx.event.ActionEvent
 import javafx.event.EventHandler
 import javafx.scene.control.*
@@ -15,16 +18,18 @@ import javafx.scene.shape.Polyline
 import javafx.stage.FileChooser
 import javafx.stage.Stage
 import javafx.util.Callback
-import io.TmpFile
+import javafx.util.Duration
 import model.Title
 import storage.PostgresStorage
 import tornadofx.*
 import view.EditingCell
+import java.lang.Math.abs
 import java.nio.file.Paths
 
 
 /**
  * TODO
+ * 1. двигающийся слайдер
  * 2. экспорт дампа названий
  * */
 
@@ -61,6 +66,8 @@ class PostgresDbView : View() {
 
     var songId: String = "0"
     var mediaPlayer: MediaPlayer? = null
+    var duration : Duration? = null
+    var needUpdate = true
 
     override val root = hbox {
         val titles = storage.titles().observable()
@@ -119,10 +126,18 @@ class PostgresDbView : View() {
                             // fixme javafx media interface is so awesome!!!
                             val hit = Media(Paths.get(musicFile.absolutePath).toUri().toString())
                             mediaPlayer = MediaPlayer(hit)
-                            mediaPlayer?.play()
-                        } else {
-                            mediaPlayer?.play()
+                            mediaPlayer?.currentTimeProperty()?.addListener { _, _, _ -> updateValues() }
+                            mediaPlayer?.onReady = Runnable {
+                                duration = mediaPlayer?.media?.duration ?: Duration.UNKNOWN
+                                updateValues()
+                            }
+                            playSlider.valueProperty().addListener(InvalidationListener {
+                                if(needUpdate)
+                                    mediaPlayer?.seek(duration?.multiply(playSlider.value / 100.0))
+                                needUpdate = true
+                            })
                         }
+                        mediaPlayer?.play()
                     } else {
                         mediaPlayer?.pause()
                     }
@@ -177,6 +192,21 @@ class PostgresDbView : View() {
     }
 
     /* --- Common --------------------------------------------------------------------------------------------------- */
+
+    private fun updateValues() {
+        Platform.runLater {
+            val cur = mediaPlayer?.currentTime?.toMillis() ?: 0.0
+            val las = duration?.toMillis() ?: 1.0
+            val v = (cur / las) * 100
+
+            println(playSlider.value)
+
+            if(cur > 0 && !playSlider.isValueChanging) {
+                playSlider.value = v
+                needUpdate = false
+            }
+        }
+    }
 
     private fun cur() = tableView.selectionModel.selectedItem
 
