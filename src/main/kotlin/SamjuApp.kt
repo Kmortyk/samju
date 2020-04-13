@@ -8,15 +8,20 @@ import javafx.scene.image.ImageView
 import javafx.scene.input.MouseEvent
 import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.Pane
+import javafx.scene.media.Media
+import javafx.scene.media.MediaPlayer
 import javafx.scene.shape.Circle
 import javafx.scene.shape.Polyline
 import javafx.stage.FileChooser
 import javafx.stage.Stage
 import javafx.util.Callback
+import io.SimplePlayer
+import io.TmpFile
 import model.Title
 import storage.PostgresStorage
 import tornadofx.*
 import view.EditingCell
+import java.nio.file.Paths
 
 
 /**
@@ -54,6 +59,7 @@ class PostgresDbView : View() {
     private val stopView: Pane by fxid("stop")
 
     private lateinit var tableView: TableView<Title>
+    private var songData: ByteArray? = null
 
     override val root = hbox {
         val titles = storage.titles().observable()
@@ -100,8 +106,20 @@ class PostgresDbView : View() {
             // if selected row not null
             if (row != null) {
                 // if can - change state
-                if(row.songId != null)
+                if(row.songId != null) {
+                    val playState = !isPlayState()
                     changePlayState(!isPlayState())
+                    if(!playState) {
+                        if(songData == null) // load data if null
+                            songData = storage.getFile(row)
+
+                        val musicFile = TmpFile.put("samju", row.format ?: "", songData ?: ByteArray(0))
+                        // fixme javafx media interface is so awesome!!!
+                        val hit = Media(Paths.get(musicFile.absolutePath).toUri().toString())
+                        val mediaPlayer = MediaPlayer(hit)
+                        mediaPlayer.play()
+                    }
+                }
                 // otherwise - always false
                 else changePlayState(false)
             }

@@ -2,8 +2,10 @@ package storage
 
 import model.Title
 import java.io.File
-import java.nio.charset.Charset
-import java.sql.*
+import java.sql.Connection
+import java.sql.DriverManager
+import java.sql.ResultSet
+import java.sql.Statement
 import java.util.*
 
 
@@ -109,10 +111,11 @@ class PostgresStorage : Storage {
     }
 
     override fun insertFile(title: Title, file: File) {
-        val stmt = db.createStatement()
-        val bts = file.readBytes()
-        val query = "INSERT INTO song_data(data) VALUES ('${Base64.getEncoder().encodeToString(bts)}');";
-        stmt.executeUpdate(query, Statement.RETURN_GENERATED_KEYS)
+        val query = "INSERT INTO song_data(data) VALUES (?)"
+        val stmt = db.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)
+
+        stmt.setBinaryStream(1, file.inputStream())
+        stmt.executeUpdate()
 
         if(stmt.generatedKeys.next()) {
             val num = stmt.generatedKeys.getLong(1)
@@ -120,6 +123,8 @@ class PostgresStorage : Storage {
             title.format = file.extension
             updateTitle(title)
         }
+
+        stmt.close()
     }
 
     override fun getFile(title: Title): ByteArray {
@@ -128,9 +133,11 @@ class PostgresStorage : Storage {
         val rs: ResultSet = stmt.executeQuery(query)
 
         if(rs.next()) {
-            val str = rs.getString("data")
-            return Base64.getDecoder().decode(str)
+            val s = rs.getBinaryStream("data")
+            return s.readAllBytes()
         }
+
+        println("[ERROR] empty song data!")
         return ByteArray(0)
     }
 }
