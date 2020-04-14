@@ -73,7 +73,10 @@ class PostgresStorage : Storage {
         stmt.setString(1, title.artist)
         stmt.setString(2, title.name)
         stmt.setInt(3, title.rating?.toInt() ?: 4)
-        stmt.setInt(4, title.songId?.toInt() ?: 0)
+        if(title.songId != null && title.songId!!.toInt() > 0)
+            stmt.setInt(4, title.songId?.toInt() ?: 0)
+        else
+            stmt.setNull(4, java.sql.Types.INTEGER)
         stmt.setString(5, title.format ?: "")
         stmt.setInt(6, title.id.toInt())
 
@@ -83,7 +86,7 @@ class PostgresStorage : Storage {
 
     override fun insertNewTitle() : Title { // insert new empty row
         val stmt = db.createStatement()
-        val query = "INSERT INTO titles(artist,rating) VALUES('',4);"
+        val query = "INSERT INTO titles(artist, rating) VALUES('',4);"
         stmt.executeUpdate(query, Statement.RETURN_GENERATED_KEYS)
         if(stmt.generatedKeys.next()) {
             val num = stmt.generatedKeys.getLong(1)
